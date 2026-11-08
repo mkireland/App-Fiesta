@@ -7,6 +7,7 @@ These are my apps I want to share with anyone who finds them useful.
 # [AuraWriter Lite](https://github.com/mkireland/AuraWriter)
   - Distraction-free environments built for fiction writers, novelists, and storytellers. Organize plot structures, manage character cards, and stay on target.
 
+more coming...
 
 
 * [Upgrade to AuraWriter Pro](https://mkireland5000.gumroad.com/l/aurawriter)
