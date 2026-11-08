@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MKI HTML Locker Tool</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: var(--accent-blue);
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .description {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .section-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-label { color: var(--accent-blue); }
+        .output-label { color: var(--accent-green); }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            background-color: #0b0f19;
+            color: #e2e8f0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            box-sizing: border-box;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 13px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        #outputCode {
+            border-color: #22c55e40;
+        }
+        #outputCode:focus {
+            border-color: var(--accent-green);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .btn-blue {
+            background-color: #0284c7;
+            color: white;
+        }
+        .btn-blue:hover { background-color: #0369a1; }
+
+        .btn-green {
+            background-color: #16a34a;
+            color: white;
+        }
+        .btn-green:hover { background-color: #15803d; }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>MKI HTML Locker Tool</h1>
+    <p class="description">
+        Paste your raw HTML file below. This tool will silently wrap your code, scramble the contents to hide them from standard text view, and inject logic that blocks right-click context menus and standard browser inspection shortcuts (F12, Ctrl+Shift+I, etc.).
+    </p>
+
+    <span class="section-label input-label">Source HTML</span>
+    <textarea id="sourceCode" placeholder="<!-- Paste your clean, readable HTML code here -->
+<!DOCTYPE html>
+<html>
+..."></textarea>
+
+    <div class="button-group">
+        <button class="btn-blue" onclick="lockHTML()">Generate & Lock HTML</button>
+        <button class="btn-outline" onclick="clearAll()">Clear All</button>
+    </div>
+
+    <span class="section-label output-label">Locked & Scrambled Output</span>
+    <textarea id="outputCode" placeholder="Scrambled output will appear here..." readonly></textarea>
+
+    <div class="button-group">
+        <button id="copyBtn" class="btn-blue" onclick="copyCode()" disabled>Copy Code</button>
+        <button id="saveBtn" class="btn-green" onclick="saveAsFile()" disabled>Save as File</button>
+    </div>
+
+    <div class="footer">
+        MKI Workspace Protection Utility &bull; Self-contained offline tool
+    </div>
+</div>
+
+<script>
+    function lockHTML() {
+        const source = document.getElementById('sourceCode').value.trim();
+        if (!source) {
+            alert('Please enter some HTML source code first.');
+            return;
+        }
+
+        // Escape the HTML source so it can safely live as a string inside the script
+        const escapedSource = encodeURIComponent(source);
+
+        // Build the locked wrapper package
+        const protectedPackage = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Protected Application</title>
+    <script>
+        // Disable common developer options and inspection shortcuts
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123) return false; // F12
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 73) return false; // Ctrl+Shift+I
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 67) return false; // Ctrl+Shift+C
+            if (e.ctrlKey && e.keyCode == 85) return false; // Ctrl+U (View Source)
+        };
+    <\/script>
+</head>
+<body>
+    <script>
+        // Decrypt and write the payload seamlessly on load
+        document.write(decodeURIComponent("${escapedSource}"));
+    <\/script>
+</body>
+</html>`;
+
+        document.getElementById('outputCode').value = protectedPackage;
+        document.getElementById('copyBtn').disabled = false;
+        document.getElementById('saveBtn').disabled = false;
+    }
+
+    function clearAll() {
+        document.getElementById('sourceCode').value = '';
+        document.getElementById('outputCode').value = '';
+        document.getElementById('copyBtn').disabled = true;
+        document.getElementById('saveBtn').disabled = true;
+    }
+
+    function copyCode() {
+        const output = document.getElementById('outputCode');
+        output.select();
+        output.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(output.value);
+        
+        const copyBtn = document.getElementById('copyBtn');
+        const originalText = copyBtn.innerText;
+        copyBtn.innerText = 'Copied!';
+        setTimeout(() => { copyBtn.innerText = originalText; }, 2000);
+    }
+
+    function saveAsFile() {
+        const code = document.getElementById('outputCode').value;
+        const blob = new Blob([code], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.download = 'mki_protected_output.html';
+        a.href = URL.createObjectURL(blob);
+        a.dataset.downloadurl = ['text/html', a.download, a.href].join(':');
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+
+</body>
+</html>
